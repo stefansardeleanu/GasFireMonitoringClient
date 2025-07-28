@@ -1,0 +1,8 @@
+﻿<Application x:Class="GasFireMonitoringClient.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="Views/MainWindow.xaml">
+    <Application.Resources>
+        <!-- Global styles will go here later -->
+    </Application.Resources>
+</Application>
