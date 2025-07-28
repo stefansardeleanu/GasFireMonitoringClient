@@ -16,5 +16,5 @@ C:\Users\ardel\source\repos\GasFireMonitoringClient\App.xaml
 228443033261
 MainWindow.xaml;Views\AlarmListView.xaml;Views\Controls\CountyMapView.xaml;Views\Controls\RomaniaMapView.xaml;Views\CountyMapView.xaml;Views\LoginWindow.xaml;Views\MainWindow.xaml;Views\SiteDetailView.xaml;Views\SiteMapView.xaml;
 
-True
+False
 

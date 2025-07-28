@@ -900,5 +900,84 @@ namespace GasFireMonitoringClient.Views
             base.OnClosed(e);
         }
         #endregion
+
+        // Add this to your MainWindow.xaml.cs to test the Romania map
+
+        #region Romania Map Testing - Step 1
+
+        /// <summary>
+        /// Test the Romania map functionality
+        /// </summary>
+        private void TestRomaniaMap()
+        {
+            try
+            {
+                // Find the Romania map control in your UI
+                // You'll need to add this to your XAML first
+
+                LogMessage("🗺️ Testing Romania map functionality...");
+
+                // If you have a Romania map view in your current UI, test it
+                // Otherwise, we'll create a simple test window
+
+                ShowRomaniaMapTestWindow();
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"❌ Error testing Romania map: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Create a test window for the Romania map
+        /// </summary>
+        private void ShowRomaniaMapTestWindow()
+        {
+            try
+            {
+                var testWindow = new Window
+                {
+                    Title = "Romania Map Test - Step 1",
+                    Width = 1000,
+                    Height = 700,
+                    WindowStartupLocation = WindowStartupLocation.CenterScreen
+                };
+
+                // Create the Romania map control
+                var romaniaMap = new GasFireMonitoringClient.Views.Controls.RomaniaMapView();
+
+                // Subscribe to county click events
+                romaniaMap.CountyClicked += (sender, countyName) =>
+                {
+                    MessageBox.Show($"County clicked: {countyName}\n\nNext step will implement county detail view.",
+                                  "County Clicked", MessageBoxButton.OK, MessageBoxImage.Information);
+                    LogMessage($"🎯 County clicked: {countyName}");
+                };
+
+                testWindow.Content = romaniaMap;
+
+                // Test the map functionality
+                romaniaMap.TestMapFunctionality();
+
+                testWindow.Show();
+                LogMessage("✅ Romania map test window opened");
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"❌ Error creating test window: {ex.Message}");
+                MessageBox.Show($"Error creating test window: {ex.Message}", "Error",
+                               MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// Add this button to test the Romania map
+        /// </summary>
+        private void TestRomaniaMap_Click(object sender, RoutedEventArgs e)
+        {
+            TestRomaniaMap();
+        }
+
+        #endregion
     }
 }

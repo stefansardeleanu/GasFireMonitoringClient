@@ -58,6 +58,7 @@ C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Gas
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\GasFireMonitoringClient.AssemblyInfoInputs.cache
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\GasFireMonitoringClient.AssemblyInfo.cs
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\GasFireMonitoringClient.csproj.CoreCompileInputs.cache
+C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\GasFireMonitoringClient.sourcelink.json
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\GasFireM.D5D8733E.Up2Date
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\GasFireMonitoringClient.dll
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\refint\GasFireMonitoringClient.dll

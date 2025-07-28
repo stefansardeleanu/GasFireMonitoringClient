@@ -116,7 +116,7 @@ namespace GasFireMonitoringClient.Views.Controls {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/GasFireMonitoringClient;V1.0.0.0;component/views/controls/countymapview.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/GasFireMonitoringClient;component/views/controls/countymapview.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\..\Views\Controls\CountyMapView.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
