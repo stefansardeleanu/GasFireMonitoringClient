@@ -1,6 +1,7 @@
 ﻿<Window x:Class="GasFireMonitoringClient.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:GasFireMonitoringClient.Views.Controls"
         Title="Gas Fire Monitoring System" 
         Height="700" Width="1200"
         WindowStartupLocation="CenterScreen"
@@ -114,72 +115,27 @@
                                         </Grid>
                                     </Border>
 
-                                    <!-- Romania Map Representation -->
-                                    <Canvas Grid.Row="1" Background="LightCyan" Height="400" Margin="10">
-                                        <Button x:Name="TestRomaniaMapButton" Content="🗺️ Test Romania Map" 
-        Width="150" Margin="5,0" Click="TestRomaniaMap_Click"/>
+                                    <!-- Romania Map Representation using SVG -->
+                                    <Grid Grid.Row="1" Margin="10">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
 
-                                        <!-- Prahova County -->
-                                        <Border Canvas.Left="300" Canvas.Top="150" 
-                                               Width="120" Height="80" 
-                                               Background="LightGreen" 
-                                               BorderBrush="DarkGreen" 
-                                               BorderThickness="3"
-                                               CornerRadius="10"
-                                               Cursor="Hand"
-                                               MouseLeftButtonDown="PrahovaRegion_Click">
-                                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <TextBlock Text="Prahova" FontWeight="Bold" HorizontalAlignment="Center"/>
-                                                <TextBlock x:Name="PrahovaSitesCountText" Text="8 Sites" HorizontalAlignment="Center"/>
-                                                <TextBlock Text="✅ Normal" HorizontalAlignment="Center" Foreground="Green"/>
-                                            </StackPanel>
+                                        <!-- Keep the Test Button temporarily during development -->
+                                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                                            <Button x:Name="TestRomaniaMapButton" Content="🗺️ Test Romania Map" 
+                                                    Width="150" Margin="5,0" Click="TestRomaniaMap_Click"/>
+                                            <TextBlock Text="← Remove this button after testing" 
+                                                       VerticalAlignment="Center" Margin="10,0" 
+                                                       FontStyle="Italic" Foreground="Gray"/>
+                                        </StackPanel>
+
+                                        <!-- Romania SVG Map Control -->
+                                        <Border Grid.Row="1" BorderBrush="DarkGray" BorderThickness="2" Background="White">
+                                            <local:RomaniaMapView x:Name="MainRomaniaMapView" />
                                         </Border>
-
-                                        <!-- Gorj County -->
-                                        <Border Canvas.Left="150" Canvas.Top="200" 
-                                               Width="120" Height="80" 
-                                               Background="Orange" 
-                                               BorderBrush="DarkOrange" 
-                                               BorderThickness="3"
-                                               CornerRadius="10"
-                                               Cursor="Hand"
-                                               MouseLeftButtonDown="GorjRegion_Click">
-                                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <TextBlock Text="Gorj" FontWeight="Bold" HorizontalAlignment="Center"/>
-                                                <TextBlock x:Name="GorjSitesCountText" Text="2 Sites" HorizontalAlignment="Center"/>
-                                                <TextBlock Text="🚨 Alarm" HorizontalAlignment="Center" Foreground="DarkRed"/>
-                                            </StackPanel>
-                                        </Border>
-
-                                        <!-- Other Counties (Simplified) -->
-                                        <Ellipse Canvas.Left="450" Canvas.Top="100" Width="60" Height="40" Fill="LightGray" Stroke="Gray"/>
-                                        <TextBlock Canvas.Left="470" Canvas.Top="115" Text="Cluj" FontSize="10"/>
-
-                                        <Ellipse Canvas.Left="200" Canvas.Top="100" Width="60" Height="40" Fill="LightGray" Stroke="Gray"/>
-                                        <TextBlock Canvas.Left="220" Canvas.Top="115" Text="Bihor" FontSize="10"/>
-
-                                        <Ellipse Canvas.Left="500" Canvas.Top="250" Width="60" Height="40" Fill="LightGray" Stroke="Gray"/>
-                                        <TextBlock Canvas.Left="515" Canvas.Top="265" Text="București" FontSize="10"/>
-
-                                        <!-- Legend -->
-                                        <Border Canvas.Left="20" Canvas.Top="20" Background="White" BorderBrush="Gray" BorderThickness="1" Padding="10">
-                                            <StackPanel>
-                                                <TextBlock Text="Status Legend:" FontWeight="Bold"/>
-                                                <StackPanel Orientation="Horizontal" Margin="0,2">
-                                                    <Rectangle Width="15" Height="15" Fill="Green" Margin="0,0,5,0"/>
-                                                    <TextBlock Text="Normal" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                                <StackPanel Orientation="Horizontal" Margin="0,2">
-                                                    <Rectangle Width="15" Height="15" Fill="Orange" Margin="0,0,5,0"/>
-                                                    <TextBlock Text="Alarm" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                                <StackPanel Orientation="Horizontal" Margin="0,2">
-                                                    <Rectangle Width="15" Height="15" Fill="Red" Margin="0,0,5,0"/>
-                                                    <TextBlock Text="Error" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </StackPanel>
-                                        </Border>
-                                    </Canvas>
+                                    </Grid>
                                 </Grid>
 
                                 <!-- County Detail View -->

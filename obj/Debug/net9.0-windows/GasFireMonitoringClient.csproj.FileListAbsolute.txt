@@ -34,7 +34,6 @@ C:\Users\ardel\source\repos\GasFireMonitoringClient\bin\Debug\net9.0-windows\Sys
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\GasFireMonitoringClient.csproj.AssemblyReference.cache
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\Controls\CountyMapView.baml
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\Controls\RomaniaMapView.baml
-C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\MainWindow.baml
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\SiteDetailView.baml
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\SiteMapView.baml
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\MainWindow.g.cs
@@ -47,12 +46,14 @@ C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Vie
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\SiteDetailView.g.cs
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\SiteMapView.g.cs
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\App.g.cs
+C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\GeneratedInternalTypeHelper.g.cs
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\GasFireMonitoringClient_MarkupCompile.cache
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\GasFireMonitoringClient_MarkupCompile.lref
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\MainWindow.baml
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\AlarmListView.baml
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\CountyMapView.baml
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\LoginWindow.baml
+C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\MainWindow.baml
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\GasFireMonitoringClient.g.resources
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\GasFireMonitoringClient.GeneratedMSBuildEditorConfig.editorconfig
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\GasFireMonitoringClient.AssemblyInfoInputs.cache

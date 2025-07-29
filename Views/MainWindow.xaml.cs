@@ -1,5 +1,5 @@
 ﻿// File: Views/MainWindow.xaml.cs
-// Complete main window code-behind with all functionality
+// Complete main window code-behind with Romania Map integration
 
 using System;
 using System.Linq;
@@ -19,7 +19,7 @@ using System.Windows.Controls;
 namespace GasFireMonitoringClient.Views
 {
     /// <summary>
-    /// Main window with complete functionality
+    /// Main window with complete functionality including Romania Map integration
     /// </summary>
     public partial class MainWindow : Window
     {
@@ -55,6 +55,10 @@ namespace GasFireMonitoringClient.Views
             SetupSignalREventHandlers();
             UpdateConnectionStatus();
             UpdateServerUrl();
+
+            // Initialize the Romania map - NEW
+            InitializeMainRomaniaMap();
+
             LogMessage("Application started. Click 'Test Connection' to verify server connectivity.");
         }
 
@@ -82,6 +86,73 @@ namespace GasFireMonitoringClient.Views
             };
             _autoRefreshTimer.Tick += AutoRefreshTimer_Tick;
         }
+        #endregion
+
+        #region Romania Map Integration - NEW SECTION
+
+        /// <summary>
+        /// Initialize the Romania map in the main window
+        /// </summary>
+        private void InitializeMainRomaniaMap()
+        {
+            try
+            {
+                // Subscribe to county click events from the main map
+                if (MainRomaniaMapView != null)
+                {
+                    MainRomaniaMapView.CountyClicked += MainRomaniaMap_CountyClicked;
+
+                    // Update the map with current site data
+                    UpdateMainRomaniaMapData();
+
+                    LogMessage("✅ Main Romania map initialized");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"❌ Error initializing main Romania map: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Handle county clicks from the main Romania map
+        /// </summary>
+        private void MainRomaniaMap_CountyClicked(object sender, string countyName)
+        {
+            try
+            {
+                LogMessage($"🎯 Romania map county clicked: {countyName}");
+
+                // Show the county detail view (your existing functionality)
+                ShowCountyDetail(countyName);
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"❌ Error handling county click: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Update the Romania map with current site data
+        /// </summary>
+        private void UpdateMainRomaniaMapData()
+        {
+            try
+            {
+                if (MainRomaniaMapView != null)
+                {
+                    // Pass your sites collection to update the map
+                    MainRomaniaMapView.UpdateCountyStatus(_sitesCollection);
+
+                    LogMessage($"🗺️ Updated Romania map with {_sitesCollection.Count} sites");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"❌ Error updating Romania map data: {ex.Message}");
+            }
+        }
+
         #endregion
 
         #region UI Update Methods
@@ -154,7 +225,7 @@ namespace GasFireMonitoringClient.Views
                 // Update dashboard summary
                 UpdateDashboardSummary();
 
-                // Update map views
+                // Update map views - MODIFIED to include Romania map
                 UpdateMapViews();
 
                 SitesLastUpdateText.Text = DateTime.Now.ToString("HH:mm:ss");
@@ -615,15 +686,15 @@ namespace GasFireMonitoringClient.Views
             MapPrahovaSitesText.Text = prahovaSites.ToString();
             MapGorjSitesText.Text = gorjSites.ToString();
             MapActiveAlarmsText.Text = totalAlarms.ToString();
-
-            PrahovaSitesCountText.Text = $"{prahovaSites} Sites";
-            GorjSitesCountText.Text = $"{gorjSites} Sites";
         }
 
         private void UpdateMapViews()
         {
             // Update map statistics when sites data changes
             UpdateMapStatistics();
+
+            // Update the Romania map with new data - NEW
+            UpdateMainRomaniaMapData();
         }
         #endregion
 
@@ -644,18 +715,6 @@ namespace GasFireMonitoringClient.Views
         {
             ShowCountyDetail("Gorj");
             LogMessage("📍 Showing Gorj county sites");
-        }
-
-        private void PrahovaRegion_Click(object sender, MouseButtonEventArgs e)
-        {
-            ShowCountyDetail("Prahova");
-            LogMessage("📍 Clicked Prahova region - showing sites");
-        }
-
-        private void GorjRegion_Click(object sender, MouseButtonEventArgs e)
-        {
-            ShowCountyDetail("Gorj");
-            LogMessage("📍 Clicked Gorj region - showing sites");
         }
 
         private void BackToRomania_Click(object sender, RoutedEventArgs e)
@@ -763,6 +822,9 @@ namespace GasFireMonitoringClient.Views
                 {
                     _ = Task.Run(async () => await RefreshSensorsData(_selectedSiteId));
                 }
+
+                // Also update the Romania map when sensor data changes - NEW
+                UpdateMapViews();
             }
             catch (Exception ex)
             {
@@ -777,6 +839,9 @@ namespace GasFireMonitoringClient.Views
                 // This is a simplified version - you'd need to parse the actual JSON structure
                 // For now, just refresh the alarms data
                 _ = Task.Run(async () => await RefreshAlarmsData());
+
+                // Also update the Romania map when new alarms arrive - NEW
+                UpdateMapViews();
             }
             catch (Exception ex)
             {
@@ -889,21 +954,7 @@ namespace GasFireMonitoringClient.Views
         }
         #endregion
 
-        #region Window Events
-        protected override void OnClosed(EventArgs e)
-        {
-            // Cleanup when window closes
-            _autoRefreshTimer?.Stop();
-            _signalRService?.Dispose();
-            _apiService?.Logout();
-            _apiService?.Dispose();
-            base.OnClosed(e);
-        }
-        #endregion
-
-        // Add this to your MainWindow.xaml.cs to test the Romania map
-
-        #region Romania Map Testing - Step 1
+        #region Romania Map Testing - Step 1 (Keep for testing)
 
         /// <summary>
         /// Test the Romania map functionality
@@ -912,14 +963,7 @@ namespace GasFireMonitoringClient.Views
         {
             try
             {
-                // Find the Romania map control in your UI
-                // You'll need to add this to your XAML first
-
                 LogMessage("🗺️ Testing Romania map functionality...");
-
-                // If you have a Romania map view in your current UI, test it
-                // Otherwise, we'll create a simple test window
-
                 ShowRomaniaMapTestWindow();
             }
             catch (Exception ex)
@@ -971,13 +1015,25 @@ namespace GasFireMonitoringClient.Views
         }
 
         /// <summary>
-        /// Add this button to test the Romania map
+        /// Test Romania map button click handler
         /// </summary>
         private void TestRomaniaMap_Click(object sender, RoutedEventArgs e)
         {
             TestRomaniaMap();
         }
 
+        #endregion
+
+        #region Window Events
+        protected override void OnClosed(EventArgs e)
+        {
+            // Cleanup when window closes
+            _autoRefreshTimer?.Stop();
+            _signalRService?.Dispose();
+            _apiService?.Logout();
+            _apiService?.Dispose();
+            base.OnClosed(e);
+        }
         #endregion
     }
 }
