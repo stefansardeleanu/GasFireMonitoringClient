@@ -40,7 +40,6 @@ C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Mai
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\AlarmListView.g.cs
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\Controls\CountyMapView.g.cs
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\Controls\RomaniaMapView.g.cs
-C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\CountyMapView.g.cs
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\LoginWindow.g.cs
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\MainWindow.g.cs
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\SiteDetailView.g.cs
@@ -51,7 +50,6 @@ C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Gas
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\GasFireMonitoringClient_MarkupCompile.lref
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\MainWindow.baml
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\AlarmListView.baml
-C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\CountyMapView.baml
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\LoginWindow.baml
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\MainWindow.baml
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\GasFireMonitoringClient.g.resources
@@ -66,5 +64,3 @@ C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\ref
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\GasFireMonitoringClient.pdb
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\GasFireMonitoringClient.genruntimeconfig.cache
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\ref\GasFireMonitoringClient.dll
-C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\Controls\CountyDetailMapView.g.cs
-C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\Controls\CountyDetailMapView.baml

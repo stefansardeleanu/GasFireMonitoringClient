@@ -5,16 +5,10 @@
     <Compile Update="Views\AlarmListView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\Controls\CountyDetailMapView.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Update="Views\Controls\CountyMapView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Controls\RomaniaMapView.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="Views\CountyMapView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\LoginWindow.xaml.cs">

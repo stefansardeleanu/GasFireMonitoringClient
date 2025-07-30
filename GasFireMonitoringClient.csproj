@@ -16,7 +16,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Views\Controls\CountyDetailMapView.xaml.cs" />
+    <Compile Remove="Views\CountyMapView.xaml.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Resources\Maps\romania_map.svg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Remove="Views\Controls\CountyDetailMapView.xaml" />
+    <Page Remove="Views\CountyMapView.xaml" />
   </ItemGroup>
 
   <ItemGroup>
