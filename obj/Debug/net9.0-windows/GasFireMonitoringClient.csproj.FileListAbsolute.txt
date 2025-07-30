@@ -66,3 +66,5 @@ C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\ref
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\GasFireMonitoringClient.pdb
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\GasFireMonitoringClient.genruntimeconfig.cache
 C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\ref\GasFireMonitoringClient.dll
+C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\Controls\CountyDetailMapView.g.cs
+C:\Users\ardel\source\repos\GasFireMonitoringClient\obj\Debug\net9.0-windows\Views\Controls\CountyDetailMapView.baml

@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET9_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NET9_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
 C:\Users\ardel\source\repos\GasFireMonitoringClient\App.xaml
-9-1874259820
+10-147419484
 
-19-1186179173
+202144243543
 228443033261
-MainWindow.xaml;Views\AlarmListView.xaml;Views\Controls\CountyMapView.xaml;Views\Controls\RomaniaMapView.xaml;Views\CountyMapView.xaml;Views\LoginWindow.xaml;Views\MainWindow.xaml;Views\SiteDetailView.xaml;Views\SiteMapView.xaml;
+MainWindow.xaml;Views\AlarmListView.xaml;Views\Controls\CountyDetailMapView.xaml;Views\Controls\CountyMapView.xaml;Views\Controls\RomaniaMapView.xaml;Views\CountyMapView.xaml;Views\LoginWindow.xaml;Views\MainWindow.xaml;Views\SiteDetailView.xaml;Views\SiteMapView.xaml;
 
 False
 
