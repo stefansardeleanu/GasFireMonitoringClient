@@ -663,16 +663,54 @@ namespace GasFireMonitoringClient.Views
             UpdateMapStatistics();
         }
 
-        private void ShowCountyDetail(string countyName)
-        {
-            RomaniaOverviewPanel.Visibility = Visibility.Collapsed;
-            CountyDetailPanel.Visibility = Visibility.Visible;
-            CurrentMapViewText.Text = $"Current View: {countyName} County";
-            CountyDetailTitle.Text = $"📍 {countyName} County Sites";
+        // Update the ShowCountyDetail method in MainWindow.xaml.cs:
 
-            // Filter sites for this county
-            var countySites = _sitesCollection.Where(s => s.County == countyName).ToList();
-            CountySitesItemsControl.ItemsSource = countySites;
+        // Update the ShowCountyDetail method in MainWindow.xaml.cs:
+
+private void ShowCountyDetail(string countyName)
+        {
+            try
+            {
+                // Hide the overview panel
+                RomaniaOverviewPanel.Visibility = Visibility.Collapsed;
+
+                // Get or create the county map view
+                var countyMapView = CountyDetailPanel.Children.OfType<GasFireMonitoringClient.Views.Controls.CountyMapView>().FirstOrDefault();
+
+                if (countyMapView == null)
+                {
+                    // Create the county map view if it doesn't exist
+                    countyMapView = new GasFireMonitoringClient.Views.Controls.CountyMapView();
+
+                    // Initialize with API service
+                    countyMapView.Initialize(_apiService);
+
+                    // Subscribe to back button event
+                    countyMapView.BackToMainMapRequested += (sender, e) => ShowRomaniaOverview();
+
+                    // Clear and add to panel
+                    CountyDetailPanel.Children.Clear();
+                    CountyDetailPanel.Children.Add(countyMapView);
+                }
+
+                // Show the detail panel
+                CountyDetailPanel.Visibility = Visibility.Visible;
+                CurrentMapViewText.Text = $"Current View: {countyName} County";
+
+                // Load the county - the control will fetch coordinates from server
+                countyMapView.LoadCounty(countyName, _sitesCollection);
+
+                LogMessage($"📍 Showing {countyName} county with server coordinates");
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"❌ Error showing county detail: {ex.Message}");
+                MessageBox.Show($"Error showing county detail: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+
+                // Fall back to overview
+                ShowRomaniaOverview();
+            }
         }
 
         private void UpdateMapStatistics()
@@ -693,8 +731,15 @@ namespace GasFireMonitoringClient.Views
             // Update map statistics when sites data changes
             UpdateMapStatistics();
 
-            // Update the Romania map with new data - NEW
+            // Update the Romania map with new data
             UpdateMainRomaniaMapData();
+
+            // Update county view if visible
+            if (CountyDetailPanel.Visibility == Visibility.Visible)
+            {
+                var countyMapView = CountyDetailPanel.Children.OfType<GasFireMonitoringClient.Views.Controls.CountyMapView>().FirstOrDefault();
+                countyMapView?.RefreshSiteStatus(_sitesCollection);
+            }
         }
         #endregion
 

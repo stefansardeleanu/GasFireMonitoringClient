@@ -288,12 +288,11 @@ namespace GasFireMonitoringClient.Models.ViewModels
         /// Convert geographic coordinates to map canvas coordinates
         /// This is a simplified conversion - you'd need proper map projection
         /// </summary>
-        public void UpdateMapPosition(double canvasWidth, double canvasHeight,
-            double minLat, double maxLat, double minLon, double maxLon)
+        public void UpdateMapPosition(double canvasWidth, double canvasHeight)
         {
             // Simple linear mapping - in real implementation you'd use proper map projection
-            MapX = (Longitude - minLon) / (maxLon - minLon) * canvasWidth;
-            MapY = (maxLat - Latitude) / (maxLat - minLat) * canvasHeight; // Flip Y axis
+            MapX = Longitude / 100 * canvasWidth;
+            MapY =  Latitude / 100 * canvasHeight; // Flip Y axis
         }
     }
 
