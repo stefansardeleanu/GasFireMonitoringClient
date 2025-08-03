@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GasFireMonitoringClient")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dba8c10a562869ddfffc996180f340ccc6f85535")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2babf3d6ab6a47c31be1d961b4e9eb28990fafb1")]
 [assembly: System.Reflection.AssemblyProductAttribute("GasFireMonitoringClient")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GasFireMonitoringClient")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
