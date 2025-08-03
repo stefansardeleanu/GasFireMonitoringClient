@@ -1,80 +1,120 @@
-﻿<!-- Updated CountyMapView.xaml with header panel -->
+﻿<!-- Updated CountyMapView.xaml with slim control panel -->
 <UserControl x:Class="GasFireMonitoringClient.Views.Controls.CountyMapView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- Navigation Header (Back button will be added here programmatically) -->
-        <StackPanel x:Name="HeaderPanel" 
-                    Grid.Row="0" 
-                    Orientation="Horizontal" 
-                    Background="WhiteSmoke"/>
 
-        <!-- County Header -->
-        <Border Grid.Row="1" Background="LightBlue" Padding="10" Margin="0,0,0,10">
-            <StackPanel>
-                <TextBlock x:Name="CountyTitleText" 
-                          Text="📍 County Name - Sites Overview" 
-                          FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
-                <TextBlock Text="Click on a site marker to view details" 
-                          FontStyle="Italic" HorizontalAlignment="Center" Margin="0,5,0,0"/>
-            </StackPanel>
-        </Border>
-
-        <!-- County Statistics Panel -->
-        <Border Grid.Row="2" Background="LightGray" Padding="10" Margin="0,0,0,10">
+        <!-- County Map Canvas Container -->
+        <Border Grid.Row="2" BorderBrush="DarkGray" BorderThickness="2" Background="White">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="140"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0" HorizontalAlignment="Center">
-                    <TextBlock Text="Total Sites" FontWeight="Bold"/>
-                    <TextBlock x:Name="CountyTotalSitesText" Text="0" FontSize="20" FontWeight="Bold" Foreground="DarkBlue"/>
-                </StackPanel>
+                <!-- Map Viewer -->
+                <ScrollViewer x:Name="CountyMapScrollViewer" 
+                             Grid.Column="0"
+                             HorizontalScrollBarVisibility="Auto"
+                             VerticalScrollBarVisibility="Auto"
+                             Background="LightCyan"
+                             HorizontalAlignment="Stretch"
+                             VerticalAlignment="Stretch"
+                             PreviewMouseWheel="CountyMapScrollViewer_PreviewMouseWheel">
 
-                <StackPanel Grid.Column="1" HorizontalAlignment="Center">
-                    <TextBlock Text="Normal Sites" FontWeight="Bold"/>
-                    <TextBlock x:Name="CountyNormalSitesText" Text="0" FontSize="20" FontWeight="Bold" Foreground="Green"/>
-                </StackPanel>
+                    <!-- Container for the map content -->
+                    <Viewbox x:Name="CountyMapViewbox" 
+                             Stretch="Uniform" 
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center">
 
-                <StackPanel Grid.Column="2" HorizontalAlignment="Center">
-                    <TextBlock Text="Alarm Sites" FontWeight="Bold"/>
-                    <TextBlock x:Name="CountyAlarmSitesText" Text="0" FontSize="20" FontWeight="Bold" Foreground="Orange"/>
-                </StackPanel>
+                        <!-- County Map Canvas -->
+                        <Canvas x:Name="CountyMapCanvas" 
+                               Width="800" 
+                               Height="600"
+                               Background="Transparent">
+                            <!-- County shape and site markers will be added here programmatically -->
+                        </Canvas>
+                    </Viewbox>
+                </ScrollViewer>
 
-                <StackPanel Grid.Column="3" HorizontalAlignment="Center">
-                    <TextBlock Text="Error Sites" FontWeight="Bold"/>
-                    <TextBlock x:Name="CountyErrorSitesText" Text="0" FontSize="20" FontWeight="Bold" Foreground="Red"/>
-                </StackPanel>
+                <!-- Slim Control Panel -->
+                <Border Grid.Column="1" 
+                        Background="LightGray" 
+                        Width="140" 
+                        Padding="5">
+                    <StackPanel>
+
+                        <!-- Reset Zoom Button -->
+                        <Button x:Name="ResetZoomButton" 
+                                Content="🏠 Reset" 
+                                Margin="0,5" 
+                                Padding="2"
+                                FontSize="10"
+                                Click="ResetZoom_Click"/>
+
+                        <Separator Margin="0,5"/>
+
+                        <!-- County Statistics -->
+                        <TextBlock Text="County Stats" FontWeight="Bold" FontSize="11" Margin="0,0,0,3"/>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,1">
+                            <TextBlock Text="Total: " FontSize="9" FontWeight="Bold"/>
+                            <TextBlock x:Name="CountyTotalSitesText" Text="0" FontSize="9" FontWeight="Bold" Foreground="DarkBlue"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,1">
+                            <TextBlock Text="Normal: " FontSize="9" FontWeight="Bold"/>
+                            <TextBlock x:Name="CountyNormalSitesText" Text="0" FontSize="9" FontWeight="Bold" Foreground="Green"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,1">
+                            <TextBlock Text="Alarms: " FontSize="9" FontWeight="Bold"/>
+                            <TextBlock x:Name="CountyAlarmSitesText" Text="0" FontSize="9" FontWeight="Bold" Foreground="Orange"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,1">
+                            <TextBlock Text="Errors: " FontSize="9" FontWeight="Bold"/>
+                            <TextBlock x:Name="CountyErrorSitesText" Text="0" FontSize="9" FontWeight="Bold" Foreground="Red"/>
+                        </StackPanel>
+
+                        <Separator Margin="0,5"/>
+
+                        <!-- Site Legend -->
+                        <TextBlock Text="Site Legend" FontWeight="Bold" FontSize="11" Margin="0,0,0,3"/>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,1">
+                            <Rectangle Width="8" Height="8" Fill="Red" Margin="0,0,3,0"/>
+                            <TextBlock Text="Alarms" VerticalAlignment="Center" FontSize="8"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,1">
+                            <Rectangle Width="8" Height="8" Fill="Orange" Margin="0,0,3,0"/>
+                            <TextBlock Text="Faults" VerticalAlignment="Center" FontSize="8"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,1">
+                            <Rectangle Width="8" Height="8" Fill="LightGray" Margin="0,0,3,0"/>
+                            <TextBlock Text="Disabled" VerticalAlignment="Center" FontSize="8"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,1">
+                            <Rectangle Width="8" Height="8" Fill="Green" Margin="0,0,3,0"/>
+                            <TextBlock Text="Normal" VerticalAlignment="Center" FontSize="8"/>
+                        </StackPanel>
+
+
+
+                    </StackPanel>
+                </Border>
             </Grid>
-        </Border>
-
-        <!-- County Map Canvas Container -->
-        <Border Grid.Row="3" BorderBrush="DarkGray" BorderThickness="2" Background="White">
-            <ScrollViewer x:Name="CountyMapScrollViewer" 
-                         HorizontalScrollBarVisibility="Auto"
-                         VerticalScrollBarVisibility="Auto"
-                         Background="LightCyan">
-
-                <!-- County Map Canvas -->
-                <Canvas x:Name="CountyMapCanvas" 
-                       Width="800" 
-                       Height="600"
-                       Background="Transparent">
-                    <!-- County shape and site markers will be added here programmatically -->
-                </Canvas>
-            </ScrollViewer>
         </Border>
     </Grid>
 </UserControl>

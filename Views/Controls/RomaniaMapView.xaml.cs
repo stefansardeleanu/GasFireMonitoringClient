@@ -36,6 +36,9 @@ namespace GasFireMonitoringClient.Views.Controls
         private Dictionary<string, WpfPath> _countyPaths = new();
         private Dictionary<string, Brush> _originalBrushes = new();
         private double _currentZoom = 1.0;
+        private const double ZOOM_FACTOR = 1.2;
+        private const double MIN_ZOOM = 0.5;
+        private const double MAX_ZOOM = 3.0;
         #endregion
 
         #region Constructor
@@ -421,8 +424,8 @@ namespace GasFireMonitoringClient.Views.Controls
 
                 TotalCountiesText.Text = $"Counties: {totalCounties}";
                 ActiveCountiesText.Text = $"Active: {activeCounties}";
-                TotalSitesOverviewText.Text = $"Total Sites: {totalSites}";
-                ActiveAlarmsOverviewText.Text = $"Active Alarms: {totalAlarms}";
+                TotalSitesOverviewText.Text = $"Sites: {totalSites}";
+                ActiveAlarmsOverviewText.Text = $"Alarms: {totalAlarms}";
 
                 ActiveAlarmsOverviewText.Foreground = totalAlarms > 0 ? Brushes.Red : Brushes.Green;
             }
@@ -434,8 +437,16 @@ namespace GasFireMonitoringClient.Views.Controls
 
         private void UpdateDebugText(string message)
         {
-            DebugText.Text = message;
             System.Diagnostics.Debug.WriteLine($"RomaniaMap: {message}");
+        }
+
+        /// <summary>
+        /// Apply zoom transformation to the map
+        /// </summary>
+        private void ApplyZoom()
+        {
+            MapViewbox.LayoutTransform = new ScaleTransform(_currentZoom, _currentZoom);
+            UpdateDebugText($"🔍 Zoom level: {_currentZoom:F1}x");
         }
         #endregion
 
@@ -505,24 +516,61 @@ namespace GasFireMonitoringClient.Views.Controls
             }
         }
 
-        private void ZoomIn_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Handle mouse wheel events for zooming to cursor position
+        /// </summary>
+        private void MapScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            _currentZoom *= 1.2;
-            MapViewbox.LayoutTransform = new ScaleTransform(_currentZoom, _currentZoom);
-            UpdateDebugText($"🔍 Zoomed in: {_currentZoom:F1}x");
-        }
+            try
+            {
+                e.Handled = true;
 
-        private void ZoomOut_Click(object sender, RoutedEventArgs e)
-        {
-            _currentZoom /= 1.2;
-            MapViewbox.LayoutTransform = new ScaleTransform(_currentZoom, _currentZoom);
-            UpdateDebugText($"🔍 Zoomed out: {_currentZoom:F1}x");
+                // Get mouse position relative to the map container
+                var mousePos = e.GetPosition(MapViewbox);
+
+                // Calculate new zoom level
+                var oldZoom = _currentZoom;
+                if (e.Delta > 0)
+                {
+                    _currentZoom = Math.Min(MAX_ZOOM, _currentZoom * ZOOM_FACTOR);
+                }
+                else
+                {
+                    _currentZoom = Math.Max(MIN_ZOOM, _currentZoom / ZOOM_FACTOR);
+                }
+
+                // Apply zoom transformation with focus point
+                var group = new TransformGroup();
+
+                // First, translate to center the zoom point
+                group.Children.Add(new TranslateTransform(-mousePos.X, -mousePos.Y));
+
+                // Then scale
+                group.Children.Add(new ScaleTransform(_currentZoom, _currentZoom));
+
+                // Finally, translate back
+                group.Children.Add(new TranslateTransform(mousePos.X, mousePos.Y));
+
+                MapViewbox.RenderTransform = group;
+
+                UpdateDebugText($"🔍 Zoom level: {_currentZoom:F1}x at ({mousePos.X:F0}, {mousePos.Y:F0})");
+            }
+            catch (Exception ex)
+            {
+                UpdateDebugText($"❌ Error handling mouse wheel: {ex.Message}");
+            }
         }
 
         private void ResetZoom_Click(object sender, RoutedEventArgs e)
         {
             _currentZoom = 1.0;
-            MapViewbox.LayoutTransform = new ScaleTransform(1.0, 1.0);
+
+            // Clear any existing transforms and set to identity
+            MapViewbox.RenderTransform = Transform.Identity;
+
+            // Force a layout update to ensure the reset takes effect immediately
+            MapViewbox.UpdateLayout();
+
             UpdateDebugText("🏠 Reset to original view");
         }
         #endregion

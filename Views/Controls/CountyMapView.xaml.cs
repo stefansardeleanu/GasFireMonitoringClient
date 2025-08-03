@@ -40,6 +40,12 @@ namespace GasFireMonitoringClient.Views.Controls
         private Dictionary<int, FrameworkElement> _siteMarkers = new();
         private ApiService _apiService;
         private bool _isLoading = false;
+
+        // Zoom functionality
+        private double _currentZoom = 1.0;
+        private const double ZOOM_FACTOR = 1.2;
+        private const double MIN_ZOOM = 0.5;
+        private const double MAX_ZOOM = 3.0;
         #endregion
 
         #region Constructor
@@ -68,7 +74,6 @@ namespace GasFireMonitoringClient.Views.Controls
             try
             {
                 _currentCounty = countyName;
-                UpdateHeader(countyName);
                 ShowLoadingIndicator(true);
 
                 // Load county shape from SVG
@@ -128,36 +133,6 @@ namespace GasFireMonitoringClient.Views.Controls
                     grid.Children.Insert(0, headerPanel as UIElement);
                 }
             }
-
-            if (headerPanel != null)
-            {
-                var backButton = new Button
-                {
-                    Content = "← Back to Romania Map",
-                    Margin = new Thickness(10, 10, 10, 10),
-                    Padding = new Thickness(10, 5, 10, 5),
-                    Background = Brushes.LightBlue,
-                    FontWeight = FontWeights.Bold,
-                    Cursor = Cursors.Hand
-                };
-                backButton.Click += BackButton_Click;
-
-                headerPanel.Children.Clear();
-                headerPanel.Children.Add(backButton);
-            }
-        }
-
-        private void UpdateHeader(string countyName)
-        {
-            if (CountyTitleText != null)
-            {
-                CountyTitleText.Text = $"📍 {countyName} County - Sites Overview";
-            }
-        }
-
-        private void BackButton_Click(object sender, RoutedEventArgs e)
-        {
-            BackToMainMapRequested?.Invoke(this, EventArgs.Empty);
         }
         #endregion
 
@@ -287,7 +262,6 @@ namespace GasFireMonitoringClient.Views.Controls
 
             if (sitesWithCoordinates.Any())
             {
-               
                 var canvasWidth = CountyMapCanvas.ActualWidth > 0 ? CountyMapCanvas.ActualWidth : 800;
                 var canvasHeight = CountyMapCanvas.ActualHeight > 0 ? CountyMapCanvas.ActualHeight : 600;
 
@@ -688,6 +662,66 @@ namespace GasFireMonitoringClient.Views.Controls
             CountyNormalSitesText.Text = normalSites.ToString();
             CountyAlarmSitesText.Text = alarmSites.ToString();
             CountyErrorSitesText.Text = errorSites.ToString();
+        }
+        #endregion
+
+        #region Zoom Functionality
+        /// <summary>
+        /// Handle mouse wheel events for zooming to cursor position
+        /// </summary>
+        private void CountyMapScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            try
+            {
+                e.Handled = true;
+
+                // Get mouse position relative to the map container
+                var mousePos = e.GetPosition(CountyMapViewbox);
+
+                // Calculate new zoom level
+                var oldZoom = _currentZoom;
+                if (e.Delta > 0)
+                {
+                    _currentZoom = Math.Min(MAX_ZOOM, _currentZoom * ZOOM_FACTOR);
+                }
+                else
+                {
+                    _currentZoom = Math.Max(MIN_ZOOM, _currentZoom / ZOOM_FACTOR);
+                }
+
+                // Apply zoom transformation with focus point
+                var group = new TransformGroup();
+
+                // First, translate to center the zoom point
+                group.Children.Add(new TranslateTransform(-mousePos.X, -mousePos.Y));
+
+                // Then scale
+                group.Children.Add(new ScaleTransform(_currentZoom, _currentZoom));
+
+                // Finally, translate back
+                group.Children.Add(new TranslateTransform(mousePos.X, mousePos.Y));
+
+                CountyMapViewbox.RenderTransform = group;
+
+                System.Diagnostics.Debug.WriteLine($"🔍 County Map Zoom level: {_currentZoom:F1}x at ({mousePos.X:F0}, {mousePos.Y:F0})");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error handling mouse wheel: {ex.Message}");
+            }
+        }
+
+        private void ResetZoom_Click(object sender, RoutedEventArgs e)
+        {
+            _currentZoom = 1.0;
+
+            // Clear any existing transforms and set to identity
+            CountyMapViewbox.RenderTransform = Transform.Identity;
+
+            // Force a layout update to ensure the reset takes effect immediately
+            CountyMapViewbox.UpdateLayout();
+
+            System.Diagnostics.Debug.WriteLine("🏠 County Map reset to original view");
         }
         #endregion
 

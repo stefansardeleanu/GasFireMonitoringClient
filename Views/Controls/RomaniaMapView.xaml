@@ -13,22 +13,12 @@ This loads the actual romania_map.svg file and makes it interactive
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Map Header -->
-        <Border Grid.Row="0" Background="LightBlue" Padding="10" Margin="0,0,0,10">
-            <StackPanel>
-                <TextBlock Text="🗺️ Romania - Gas Fire Monitoring System" 
-                          FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
-                <TextBlock Text="Click on a county to view sites in that area" 
-                          FontStyle="Italic" HorizontalAlignment="Center" Margin="0,5,0,0"/>
-            </StackPanel>
-        </Border>
-
         <!-- Map Container -->
         <Border Grid.Row="1" BorderBrush="DarkGray" BorderThickness="2" Background="White">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="120"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- SVG Map Viewer -->
@@ -38,7 +28,8 @@ This loads the actual romania_map.svg file and makes it interactive
                              VerticalScrollBarVisibility="Auto"
                              Background="LightCyan"
                              HorizontalAlignment="Stretch"
-                             VerticalAlignment="Stretch">
+                             VerticalAlignment="Stretch"
+                             PreviewMouseWheel="MapScrollViewer_PreviewMouseWheel">
 
                     <!-- Container for the SVG content -->
                     <Viewbox x:Name="MapViewbox" 
@@ -64,71 +55,55 @@ This loads the actual romania_map.svg file and makes it interactive
                     </Viewbox>
                 </ScrollViewer>
 
-                <!-- Control Panel -->
+                <!-- Slim Control Panel -->
                 <Border Grid.Column="1" 
                         Background="LightGray" 
-                        Width="200" 
-                        Padding="10">
+                        Width="120" 
+                        Padding="5">
                     <StackPanel>
 
-                        <!-- Map Controls -->
-                        <TextBlock Text="Map Controls" FontWeight="Bold" Margin="0,0,0,10"/>
-
-                        <Button x:Name="ZoomInButton" 
-                                Content="🔍 Zoom In" 
-                                Margin="0,2" 
-                                Click="ZoomIn_Click"/>
-
-                        <Button x:Name="ZoomOutButton" 
-                                Content="🔍 Zoom Out" 
-                                Margin="0,2" 
-                                Click="ZoomOut_Click"/>
-
+                        <!-- Reset Zoom Button -->
                         <Button x:Name="ResetZoomButton" 
-                                Content="🏠 Reset View" 
-                                Margin="0,2" 
+                                Content="🏠 Reset" 
+                                Margin="0,5" 
+                                Padding="2"
+                                FontSize="10"
                                 Click="ResetZoom_Click"/>
 
-                        <Separator Margin="0,10"/>
+                        <Separator Margin="0,5"/>
 
                         <!-- Status Summary -->
-                        <TextBlock Text="System Overview" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBlock Text="Overview" FontWeight="Bold" FontSize="11" Margin="0,0,0,3"/>
 
-                        <TextBlock x:Name="TotalCountiesText" Text="Counties: 42" Margin="0,2"/>
-                        <TextBlock x:Name="ActiveCountiesText" Text="Active: 2" Margin="0,2"/>
-                        <TextBlock x:Name="TotalSitesOverviewText" Text="Total Sites: 10" Margin="0,2"/>
-                        <TextBlock x:Name="ActiveAlarmsOverviewText" Text="Active Alarms: 0" Margin="0,2" Foreground="Red"/>
+                        <TextBlock x:Name="TotalCountiesText" Text="Counties: 42" FontSize="9" Margin="0,1"/>
+                        <TextBlock x:Name="ActiveCountiesText" Text="Active: 2" FontSize="9" Margin="0,1"/>
+                        <TextBlock x:Name="TotalSitesOverviewText" Text="Sites: 10" FontSize="9" Margin="0,1"/>
+                        <TextBlock x:Name="ActiveAlarmsOverviewText" Text="Alarms: 0" FontSize="9" Margin="0,1" Foreground="Red"/>
 
-                        <Separator Margin="0,10"/>
+                        <Separator Margin="0,5"/>
 
                         <!-- Legend -->
-                        <TextBlock Text="Status Legend" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBlock Text="Legend" FontWeight="Bold" FontSize="11" Margin="0,0,0,3"/>
 
-                        <StackPanel Orientation="Horizontal" Margin="0,2">
-                            <Ellipse Width="12" Height="12" Fill="Green" Margin="0,0,5,0"/>
-                            <TextBlock Text="Normal" VerticalAlignment="Center" FontSize="10"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,1">
+                            <Ellipse Width="8" Height="8" Fill="Green" Margin="0,0,3,0"/>
+                            <TextBlock Text="Normal" VerticalAlignment="Center" FontSize="8"/>
                         </StackPanel>
 
-                        <StackPanel Orientation="Horizontal" Margin="0,2">
-                            <Ellipse Width="12" Height="12" Fill="Orange" Margin="0,0,5,0"/>
-                            <TextBlock Text="Alarm" VerticalAlignment="Center" FontSize="10"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,1">
+                            <Ellipse Width="8" Height="8" Fill="Orange" Margin="0,0,3,0"/>
+                            <TextBlock Text="Alarm" VerticalAlignment="Center" FontSize="8"/>
                         </StackPanel>
 
-                        <StackPanel Orientation="Horizontal" Margin="0,2">
-                            <Ellipse Width="12" Height="12" Fill="Red" Margin="0,0,5,0"/>
-                            <TextBlock Text="Error" VerticalAlignment="Center" FontSize="10"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,1">
+                            <Ellipse Width="8" Height="8" Fill="Red" Margin="0,0,3,0"/>
+                            <TextBlock Text="Error" VerticalAlignment="Center" FontSize="8"/>
                         </StackPanel>
 
-                        <StackPanel Orientation="Horizontal" Margin="0,2">
-                            <Ellipse Width="12" Height="12" Fill="Gray" Margin="0,0,5,0"/>
-                            <TextBlock Text="Offline" VerticalAlignment="Center" FontSize="10"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,1">
+                            <Ellipse Width="8" Height="8" Fill="Gray" Margin="0,0,3,0"/>
+                            <TextBlock Text="Offline" VerticalAlignment="Center" FontSize="8"/>
                         </StackPanel>
-
-                        <Separator Margin="0,10"/>
-
-                        <!-- Debug Info -->
-                        <TextBlock Text="Debug Info" FontWeight="Bold" Margin="0,0,0,5"/>
-                        <TextBlock x:Name="DebugText" Text="Ready" FontSize="10" Foreground="Gray" TextWrapping="Wrap"/>
 
                     </StackPanel>
                 </Border>

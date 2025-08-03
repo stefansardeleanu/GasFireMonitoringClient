@@ -660,7 +660,6 @@ namespace GasFireMonitoringClient.Views
             CountyDetailPanel.Visibility = Visibility.Collapsed;
             CurrentMapViewText.Text = "Current View: Romania Overview";
 
-            UpdateMapStatistics();
         }
 
         // Update the ShowCountyDetail method in MainWindow.xaml.cs:
@@ -713,23 +712,10 @@ private void ShowCountyDetail(string countyName)
             }
         }
 
-        private void UpdateMapStatistics()
-        {
-            var totalSites = _sitesCollection.Count;
-            var prahovaSites = _sitesCollection.Count(s => s.County == "Prahova");
-            var gorjSites = _sitesCollection.Count(s => s.County == "Gorj");
-            var totalAlarms = _sitesCollection.Sum(s => s.AlarmSensors);
-
-            MapTotalSitesText.Text = totalSites.ToString();
-            MapPrahovaSitesText.Text = prahovaSites.ToString();
-            MapGorjSitesText.Text = gorjSites.ToString();
-            MapActiveAlarmsText.Text = totalAlarms.ToString();
-        }
+        
 
         private void UpdateMapViews()
         {
-            // Update map statistics when sites data changes
-            UpdateMapStatistics();
 
             // Update the Romania map with new data
             UpdateMainRomaniaMapData();

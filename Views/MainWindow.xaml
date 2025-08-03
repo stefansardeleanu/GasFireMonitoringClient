@@ -50,24 +50,14 @@
                     </Grid.RowDefinitions>
 
                     <!-- Navigation Header -->
-                    <Border Grid.Row="0" Background="LightBlue" Padding="10" Margin="0,0,0,10">
-                        <StackPanel>
-                            <TextBlock Text="🗺️ Geographic Monitoring System" 
-                                      FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
-                            <TextBlock Text="Visual overview of sites across Romania" 
-                                      FontStyle="Italic" HorizontalAlignment="Center" Margin="0,5,0,0"/>
-                        </StackPanel>
-                    </Border>
+
 
                     <!-- Navigation Controls -->
                     <Border Grid.Row="1" Background="LightGray" Margin="0,0,0,10">
                         <StackPanel Orientation="Horizontal" Margin="10">
                             <Button x:Name="ShowRomaniaMapButton" Content="🗺️ Romania Overview" 
                                    Width="150" Margin="5,0" Click="ShowRomaniaMap_Click"/>
-                            <Button x:Name="ShowPrahovaMapButton" Content="📍 Prahova County" 
-                                   Width="150" Margin="5,0" Click="ShowPrahovaMap_Click"/>
-                            <Button x:Name="ShowGorjMapButton" Content="📍 Gorj County" 
-                                   Width="150" Margin="5,0" Click="ShowGorjMap_Click"/>
+                            
                             <TextBlock x:Name="CurrentMapViewText" Text="Current View: Romania Overview" 
                                       VerticalAlignment="Center" Margin="20,0" FontWeight="Bold"/>
                         </StackPanel>
@@ -83,38 +73,7 @@
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
 
-                                    <!-- Romania Statistics -->
-                                    <Border Grid.Row="0" Background="LightBlue" Padding="15" Margin="10">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-
-                                            <StackPanel Grid.Column="0" HorizontalAlignment="Center">
-                                                <TextBlock Text="Total Sites" FontWeight="Bold"/>
-                                                <TextBlock x:Name="MapTotalSitesText" Text="10" FontSize="24" FontWeight="Bold" Foreground="DarkBlue"/>
-                                            </StackPanel>
-
-                                            <StackPanel Grid.Column="1" HorizontalAlignment="Center">
-                                                <TextBlock Text="Prahova Sites" FontWeight="Bold"/>
-                                                <TextBlock x:Name="MapPrahovaSitesText" Text="8" FontSize="24" FontWeight="Bold" Foreground="Green"/>
-                                            </StackPanel>
-
-                                            <StackPanel Grid.Column="2" HorizontalAlignment="Center">
-                                                <TextBlock Text="Gorj Sites" FontWeight="Bold"/>
-                                                <TextBlock x:Name="MapGorjSitesText" Text="2" FontSize="24" FontWeight="Bold" Foreground="Orange"/>
-                                            </StackPanel>
-
-                                            <StackPanel Grid.Column="3" HorizontalAlignment="Center">
-                                                <TextBlock Text="Active Alarms" FontWeight="Bold"/>
-                                                <TextBlock x:Name="MapActiveAlarmsText" Text="0" FontSize="24" FontWeight="Bold" Foreground="Red"/>
-                                            </StackPanel>
-                                        </Grid>
-                                    </Border>
-
+                                   
                                     <!-- Romania Map Representation using SVG -->
                                     <Grid Grid.Row="1" Margin="10">
                                         <Grid.RowDefinitions>
@@ -123,13 +82,7 @@
                                         </Grid.RowDefinitions>
 
                                         <!-- Keep the Test Button temporarily during development -->
-                                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-                                            <Button x:Name="TestRomaniaMapButton" Content="🗺️ Test Romania Map" 
-                                                    Width="150" Margin="5,0" Click="TestRomaniaMap_Click"/>
-                                            <TextBlock Text="← Remove this button after testing" 
-                                                       VerticalAlignment="Center" Margin="10,0" 
-                                                       FontStyle="Italic" Foreground="Gray"/>
-                                        </StackPanel>
+                                       
 
                                         <!-- Romania SVG Map Control -->
                                         <Border Grid.Row="1" BorderBrush="DarkGray" BorderThickness="2" Background="White">
