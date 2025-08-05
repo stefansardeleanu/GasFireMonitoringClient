@@ -32,230 +32,517 @@ namespace GasFireMonitoringClient.Views.Controls
         #endregion
 
         #region Private Fields
-        private ObservableCollection<CountyViewModel> _counties = new();
-        private Dictionary<string, WpfPath> _countyPaths = new();
-        private Dictionary<string, Brush> _originalBrushes = new();
+        private readonly ObservableCollection<CountyViewModel> _counties = new();
+        private readonly Dictionary<string, WpfPath> _countyPaths = new();
+        private readonly Dictionary<string, TextBlock> _countyLabels = new();
+        private readonly Dictionary<string, Border> _countyStats = new();
+        private ToolTip? _currentTooltip;
+
+        // Zoom functionality
         private double _currentZoom = 1.0;
         private const double ZOOM_FACTOR = 1.2;
         private const double MIN_ZOOM = 0.5;
         private const double MAX_ZOOM = 3.0;
+
+        // Auto-refresh timer
+        private System.Windows.Threading.DispatcherTimer? _refreshTimer;
+        private ObservableCollection<SiteViewModel>? _lastSiteData;
         #endregion
 
         #region Constructor
         public RomaniaMapView()
         {
             InitializeComponent();
-            LoadSvgMap();
             InitializeCountyData();
+            LoadMap();
+            SetupAutoRefresh();
+
+            // Clean up timer when control is unloaded
+            Unloaded += (s, e) => StopAutoRefresh();
         }
         #endregion
 
-        #region SVG Loading
-        /// <summary>
-        /// Load the SVG map from resources and convert to WPF elements
-        /// </summary>
-        private async void LoadSvgMap()
+        #region Map Loading
+        private void LoadMap()
         {
             try
             {
-                UpdateDebugText("Loading SVG from resources...");
+                UpdateDebugText("🗺️ Loading Romania map from resources...");
+
+                // Clear existing elements but preserve counties data
+                MapCanvas.Children.Clear();
+                _countyPaths.Clear();
+                _countyLabels.Clear();
+                _countyStats.Clear();
 
                 // Load SVG from embedded resource
-                var svgContent = LoadSvgFromResources();
-
-                if (string.IsNullOrEmpty(svgContent))
-                {
-                    UpdateDebugText("❌ Failed to load SVG content");
-                    return;
-                }
-
-                UpdateDebugText("✅ SVG loaded, parsing counties...");
-
-                // Parse the SVG and create WPF elements
-                await ParseSvgAndCreateElements(svgContent);
-
-                // Hide loading text
-                LoadingText.Visibility = Visibility.Collapsed;
-
-                UpdateDebugText($"✅ Map loaded with {_countyPaths.Count} counties");
-            }
-            catch (Exception ex)
-            {
-                UpdateDebugText($"❌ Error loading SVG: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"Error loading SVG: {ex}");
-            }
-        }
-
-        /// <summary>
-        /// Load SVG content from embedded resources
-        /// </summary>
-        private string LoadSvgFromResources()
-        {
-            try
-            {
                 var assembly = System.Reflection.Assembly.GetExecutingAssembly();
                 var resourceName = "GasFireMonitoringClient.Resources.Maps.romania_map.svg";
 
-                // Try to find the resource
-                var resourceNames = assembly.GetManifestResourceNames();
-                var actualResourceName = resourceNames.FirstOrDefault(r => r.Contains("romania_map.svg"));
-
-                if (actualResourceName == null)
-                {
-                    UpdateDebugText($"❌ SVG resource not found. Available resources: {string.Join(", ", resourceNames.Take(3))}...");
-                    return string.Empty;
-                }
-
-                using (var stream = assembly.GetManifestResourceStream(actualResourceName))
+                using (var stream = assembly.GetManifestResourceStream(resourceName))
                 {
                     if (stream == null)
                     {
-                        UpdateDebugText("❌ Could not open resource stream");
-                        return string.Empty;
+                        UpdateDebugText("❌ Map resource not found!");
+                        return;
                     }
 
-                    using (var reader = new StreamReader(stream))
+                    var doc = new XmlDocument();
+                    doc.Load(stream);
+
+                    UpdateDebugText("✅ SVG loaded successfully");
+
+                    // Process the SVG
+                    ProcessSvgDocument(doc);
+                }
+
+                // Reapply site data if we have any
+                if (_counties.Any(c => c.TotalSites > 0))
+                {
+                    foreach (var county in _counties)
                     {
-                        return reader.ReadToEnd();
+                        UpdateCountyAppearance(county);
                     }
+                    UpdateOverviewStatistics();
                 }
             }
             catch (Exception ex)
             {
-                UpdateDebugText($"❌ Error reading SVG resource: {ex.Message}");
-                return string.Empty;
+                UpdateDebugText($"❌ Error loading map: {ex.Message}");
             }
         }
 
-        /// <summary>
-        /// Parse SVG content and create WPF Path elements
-        /// </summary>
-        private async System.Threading.Tasks.Task ParseSvgAndCreateElements(string svgContent)
+        private void ProcessSvgDocument(XmlDocument doc)
         {
             try
             {
-                var xmlDoc = new XmlDocument();
-                xmlDoc.LoadXml(svgContent);
-
-                // Create namespace manager for SVG
-                var nsmgr = new XmlNamespaceManager(xmlDoc.NameTable);
-                nsmgr.AddNamespace("svg", "http://www.w3.org/2000/svg");
-
-                // Find all path elements with ID attributes, accounting for potential namespace
-                var pathNodes = xmlDoc.SelectNodes("//svg:path[@id] | //path[@id]", nsmgr);
-
-                if (pathNodes == null || pathNodes.Count == 0)
+                // Set up the canvas size based on SVG viewBox
+                var svg = doc.DocumentElement;
+                if (svg?.GetAttribute("viewBox") is string viewBox)
                 {
-                    // Debug the SVG content
-                    UpdateDebugText($"❌ No path elements found. SVG structure: {xmlDoc.DocumentElement?.Name}");
-                    return;
-                }
-
-                UpdateDebugText($"Found {pathNodes.Count} path elements");
-
-                // Clear existing content
-                SvgContainer.Children.Clear();
-
-                int processedCount = 0;
-
-                foreach (XmlNode pathNode in pathNodes)
-                {
-                    try
+                    var parts = viewBox.Split(' ');
+                    if (parts.Length == 4)
                     {
-                        var pathElement = CreatePathFromXmlNode(pathNode);
-                        if (pathElement != null)
-                        {
-                            SvgContainer.Children.Add(pathElement);
-                            processedCount++;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error processing path node: {ex.Message}");
+                        MapCanvas.Width = double.Parse(parts[2]);
+                        MapCanvas.Height = double.Parse(parts[3]);
                     }
                 }
 
-                UpdateDebugText($"✅ Created {processedCount} county elements");
+                // Find the layer with county paths
+                var countyPaths = doc.GetElementsByTagName("path");
+                var pathCount = 0;
 
-                // Debug the first path if none were processed
-                if (processedCount == 0 && pathNodes.Count > 0)
+                foreach (XmlNode node in countyPaths)
                 {
-                    var firstPath = pathNodes[0];
-                    UpdateDebugText($"Debug - First path: ID={firstPath.Attributes?["id"]?.Value}, Data={firstPath.Attributes?["d"]?.Value?.Substring(0, 50)}...");
+                    // Skip non-county paths
+                    var id = node.Attributes?["id"]?.Value;
+                    if (string.IsNullOrEmpty(id) || !id.StartsWith("RO"))
+                        continue;
+
+                    ProcessCountyElement(node, MapCanvas);
+                    pathCount++;
+                }
+
+                UpdateDebugText($"✅ Loaded {pathCount} counties");
+
+                // Fit the map to the viewbox
+                if (MapViewbox != null)
+                {
+                    MapViewbox.Stretch = Stretch.Uniform;
                 }
             }
             catch (Exception ex)
             {
-                UpdateDebugText($"❌ Error parsing SVG: {ex.Message}");
-                throw;
+                UpdateDebugText($"❌ Error processing SVG: {ex.Message}");
             }
         }
 
-        /// <summary>
-        /// Create a WPF Path element from an XML node
-        /// </summary>
-        private WpfPath? CreatePathFromXmlNode(XmlNode pathNode)
+        private void ProcessCountyElement(XmlNode node, Canvas targetCanvas)
         {
             try
             {
-                var id = pathNode.Attributes?["id"]?.Value;
-                var name = pathNode.Attributes?["name"]?.Value;
-                var pathData = pathNode.Attributes?["d"]?.Value;
+                var pathData = node.Attributes?["d"]?.Value;
+                if (string.IsNullOrEmpty(pathData)) return;
 
-                if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(pathData))
-                {
-                    return null;
-                }
+                var id = node.Attributes?["id"]?.Value ?? "";
+                var name = node.Attributes?["name"]?.Value ?? "";
+                var countyName = GetCountyName(id, name);
 
-                // Convert county ID to readable name
-                var countyName = ConvertIdToCountyName(id, name);
-
+                // Create the path
                 var path = new WpfPath
                 {
                     Data = Geometry.Parse(pathData),
-                    Fill = Brushes.LightGray,
+                    Fill = Brushes.LightGreen,
                     Stroke = Brushes.DarkGray,
-                    StrokeThickness = 1,
-                    Cursor = Cursors.Hand,
+                    StrokeThickness = 1.5,
                     Tag = countyName,
-                    ToolTip = $"{countyName} County - Click to view sites"
+                    Cursor = Cursors.Hand
                 };
 
-                // Add event handlers
-                path.MouseEnter += County_MouseEnter;
-                path.MouseLeave += County_MouseLeave;
-                path.MouseLeftButtonDown += County_Click;
-
-                // Store the path for later reference
-                _countyPaths[countyName] = path;
-                _originalBrushes[countyName] = path.Fill;
-
-                // Add county to the collection if not already present
-                if (!_counties.Any(c => c.Name == countyName))
+                // Add hover effect
+                path.MouseEnter += (s, e) =>
                 {
-                    _counties.Add(new CountyViewModel
+                    if (_counties.FirstOrDefault(c => c.Name == countyName) is CountyViewModel county)
                     {
-                        Name = countyName,
-                        Status = "offline",
-                        TotalSites = 0
-                    });
+                        ShowCountyTooltip(county);
+                    }
+                };
+
+                path.MouseLeave += (s, e) =>
+                {
+                    HideCountyTooltip();
+                };
+
+                path.MouseLeftButtonDown += (s, e) =>
+                {
+                    CountyClicked?.Invoke(this, countyName);
+                    e.Handled = true;
+                };
+
+                targetCanvas.Children.Add(path);
+                _countyPaths[countyName] = path;
+
+                // Find or create county view model
+                var countyVm = _counties.FirstOrDefault(c => c.Name == countyName);
+                if (countyVm == null)
+                {
+                    countyVm = new CountyViewModel { Name = countyName };
+                    _counties.Add(countyVm);
                 }
 
-                System.Diagnostics.Debug.WriteLine($"Created path for county: {countyName}");
+                // Get center point for labels
+                var center = GetCountyCenter(path);
 
-                return path;
+                // Extract and display county code
+                var countyCode = ExtractCountyCode(id);
+                if (!string.IsNullOrEmpty(countyCode))
+                {
+                    CreateCountyLabel(id, countyCode, center);
+                }
+
+                // Create statistics display
+                CreateCountyStats(id, countyVm, center);
+
+                UpdateDebugText($"✅ Loaded county: {countyName} (Code: {countyCode})");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error creating path: {ex.Message}");
-                return null;
+                UpdateDebugText($"❌ Error processing county: {ex.Message}");
+            }
+        }
+        #endregion
+
+        #region County Display Methods
+        /// <summary>
+        /// Extract county code from ID (e.g., "ROBC" -> "BC")
+        /// </summary>
+        private string ExtractCountyCode(string id)
+        {
+            if (string.IsNullOrEmpty(id) || id.Length < 4)
+                return "";
+
+            // Remove "RO" prefix to get county code
+            if (id.StartsWith("RO"))
+            {
+                return id.Substring(2);
+            }
+
+            return id;
+        }
+
+        /// <summary>
+        /// Create text label for county code
+        /// </summary>
+        private void CreateCountyLabel(string countyId, string countyCode, Point center)
+        {
+            var label = new TextBlock
+            {
+                Text = countyCode,
+                FontSize = 12,
+                FontWeight = FontWeights.Bold,
+                Foreground = Brushes.Black,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                IsHitTestVisible = false // Don't interfere with mouse events
+            };
+
+            // Position the label at the county center
+            Canvas.SetLeft(label, center.X - 10); // Adjust for text width
+            Canvas.SetTop(label, center.Y - 8);   // Adjust for text height
+            Canvas.SetZIndex(label, 10); // Ensure labels are on top
+
+            // Add to the canvas
+            MapCanvas.Children.Add(label);
+
+            // Store reference for updates
+            if (!_countyLabels.ContainsKey(countyId))
+            {
+                _countyLabels[countyId] = label;
             }
         }
 
         /// <summary>
-        /// Convert SVG ID to readable county name
+        /// Create statistics display for a county
         /// </summary>
-        private string ConvertIdToCountyName(string id, string? name)
+        private void CreateCountyStats(string countyId, CountyViewModel county, Point center)
+        {
+            // Container for the statistics
+            var statsContainer = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Background = new SolidColorBrush(Color.FromArgb(240, 255, 255, 255)), // Semi-transparent white
+                Margin = new Thickness(2),
+                IsHitTestVisible = false // Don't interfere with mouse events
+            };
+
+            // Create three colored squares with counters
+            var normalSquare = CreateStatSquare(Brushes.Green, county.NormalSites.ToString(), "Normal");
+            var alarmSquare = CreateStatSquare(Brushes.Orange, county.AlarmSites.ToString(), "Alarms");
+            var errorSquare = CreateStatSquare(Brushes.Red, county.ErrorSites.ToString(), "Errors");
+
+            statsContainer.Children.Add(normalSquare);
+            statsContainer.Children.Add(alarmSquare);
+            statsContainer.Children.Add(errorSquare);
+
+            // Create border for better visibility
+            var border = new Border
+            {
+                Child = statsContainer,
+                BorderBrush = Brushes.DarkGray,
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(2),
+                IsHitTestVisible = false // Don't interfere with mouse events
+            };
+
+            // Position below the county code
+            Canvas.SetLeft(border, center.X - 30); // Center the stats
+            Canvas.SetTop(border, center.Y + 10);  // Below the county code
+            Canvas.SetZIndex(border, 10); // Ensure stats are on top
+
+            // Add to canvas
+            MapCanvas.Children.Add(border);
+
+            // Store reference
+            if (!_countyStats.ContainsKey(countyId))
+            {
+                _countyStats[countyId] = border;
+            }
+        }
+
+        /// <summary>
+        /// Create a single statistics square
+        /// </summary>
+        private Border CreateStatSquare(Brush color, string count, string tooltip)
+        {
+            var grid = new Grid
+            {
+                Width = 20,
+                Height = 20,
+                Margin = new Thickness(1)
+            };
+
+            // Colored background
+            var rect = new Rectangle
+            {
+                Fill = color,
+                Stroke = Brushes.Black,
+                StrokeThickness = 0.5
+            };
+
+            // Count text
+            var text = new TextBlock
+            {
+                Text = count,
+                FontSize = 9,
+                FontWeight = FontWeights.Bold,
+                Foreground = Brushes.White,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+
+            grid.Children.Add(rect);
+            grid.Children.Add(text);
+
+            var border = new Border
+            {
+                Child = grid,
+                ToolTip = $"{tooltip}: {count}"
+            };
+
+            return border;
+        }
+
+        /// <summary>
+        /// Get the center point of a county path
+        /// </summary>
+        private Point GetCountyCenter(WpfPath countyPath)
+        {
+            var geometry = countyPath.Data;
+            var bounds = geometry.Bounds;
+
+            // Return the center of the bounding box
+            return new Point(
+                bounds.X + bounds.Width / 2,
+                bounds.Y + bounds.Height / 2
+            );
+        }
+
+        /// <summary>
+        /// Update the statistics display for a county
+        /// </summary>
+        private void UpdateCountyStatsDisplay(CountyViewModel county)
+        {
+            // Find the county ID from name
+            string countyId = GetCountyIdFromName(county.Name);
+
+            if (string.IsNullOrEmpty(countyId) || !_countyStats.ContainsKey(countyId))
+                return;
+
+            var statsContainer = _countyStats[countyId];
+            if (statsContainer.Child is StackPanel panel && panel.Children.Count >= 3)
+            {
+                // Update Normal square
+                if (panel.Children[0] is Border normalBorder &&
+                    normalBorder.Child is Grid normalGrid &&
+                    normalGrid.Children.Count > 1 &&
+                    normalGrid.Children[1] is TextBlock normalText)
+                {
+                    normalText.Text = county.NormalSites.ToString();
+                    normalBorder.ToolTip = $"Normal: {county.NormalSites}";
+                }
+
+                // Update Alarm square
+                if (panel.Children[1] is Border alarmBorder &&
+                    alarmBorder.Child is Grid alarmGrid &&
+                    alarmGrid.Children.Count > 1 &&
+                    alarmGrid.Children[1] is TextBlock alarmText)
+                {
+                    alarmText.Text = county.AlarmSites.ToString();
+                    alarmBorder.ToolTip = $"Alarms: {county.AlarmSites}";
+                }
+
+                // Update Error square
+                if (panel.Children[2] is Border errorBorder &&
+                    errorBorder.Child is Grid errorGrid &&
+                    errorGrid.Children.Count > 1 &&
+                    errorGrid.Children[1] is TextBlock errorText)
+                {
+                    errorText.Text = county.ErrorSites.ToString();
+                    errorBorder.ToolTip = $"Errors: {county.ErrorSites}";
+                }
+            }
+        }
+        #endregion
+
+        #region Zoom Functionality
+        /// <summary>
+        /// Handle mouse wheel events for zooming to cursor position
+        /// </summary>
+        private void MapScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            try
+            {
+                e.Handled = true;
+
+                // Get mouse position relative to the map container
+                var mousePos = e.GetPosition(MapViewbox);
+
+                // Calculate new zoom level
+                var oldZoom = _currentZoom;
+                if (e.Delta > 0)
+                {
+                    _currentZoom = Math.Min(MAX_ZOOM, _currentZoom * ZOOM_FACTOR);
+                }
+                else
+                {
+                    _currentZoom = Math.Max(MIN_ZOOM, _currentZoom / ZOOM_FACTOR);
+                }
+
+                // Apply zoom transformation with focus point
+                var group = new TransformGroup();
+
+                // First, translate to center the zoom point
+                group.Children.Add(new TranslateTransform(-mousePos.X, -mousePos.Y));
+
+                // Then scale
+                group.Children.Add(new ScaleTransform(_currentZoom, _currentZoom));
+
+                // Finally, translate back
+                group.Children.Add(new TranslateTransform(mousePos.X, mousePos.Y));
+
+                MapViewbox.RenderTransform = group;
+
+                UpdateDebugText($"🔍 Zoom level: {_currentZoom:F1}x at ({mousePos.X:F0}, {mousePos.Y:F0})");
+            }
+            catch (Exception ex)
+            {
+                UpdateDebugText($"❌ Error handling mouse wheel: {ex.Message}");
+            }
+        }
+
+
+
+        private void ResetZoom_Click(object sender, RoutedEventArgs e)
+        {
+            _currentZoom = 1.0;
+            MapViewbox.RenderTransform = new ScaleTransform(1.0, 1.0);
+
+            // Center the map
+            MapScrollViewer.ScrollToHorizontalOffset((MapScrollViewer.ExtentWidth - MapScrollViewer.ViewportWidth) / 2);
+            MapScrollViewer.ScrollToVerticalOffset((MapScrollViewer.ExtentHeight - MapScrollViewer.ViewportHeight) / 2);
+
+            UpdateDebugText("🏠 Zoom reset to 1.0x");
+        }
+        #endregion
+
+        #region Tooltip Management
+        private void ShowCountyTooltip(CountyViewModel county)
+        {
+            _currentTooltip = new ToolTip
+            {
+                Content = county.ToolTipText,
+                IsOpen = true
+            };
+        }
+
+        private void HideCountyTooltip()
+        {
+            if (_currentTooltip != null)
+            {
+                _currentTooltip.IsOpen = false;
+                _currentTooltip = null;
+            }
+        }
+        #endregion
+
+        #region Helper Methods
+        private void UpdateDebugText(string message)
+        {
+            if (DebugText != null)
+            {
+                DebugText.Text = $"{DateTime.Now:HH:mm:ss} - {message}";
+            }
+        }
+
+        private void UpdateOverviewStatistics()
+        {
+            int totalCounties = _counties.Count;
+            int normalCounties = _counties.Count(c => c.Status == "normal");
+            int alarmCounties = _counties.Count(c => c.Status == "alarm");
+            int errorCounties = _counties.Count(c => c.Status == "error");
+            int totalSites = _counties.Sum(c => c.TotalSites);
+
+            TotalCountiesText.Text = totalCounties.ToString();
+            NormalCountiesText.Text = normalCounties.ToString();
+            AlarmCountiesText.Text = alarmCounties.ToString();
+            ErrorCountiesText.Text = errorCounties.ToString();
+            TotalSitesText.Text = totalSites.ToString();
+        }
+
+        /// <summary>
+        /// Convert SVG element ID to readable county name
+        /// </summary>
+        private string GetCountyName(string id, string name)
         {
             // Use the name attribute if available, otherwise convert ID
             if (!string.IsNullOrEmpty(name))
@@ -309,6 +596,119 @@ namespace GasFireMonitoringClient.Views.Controls
                 _ => id // Default to ID if no mapping found
             };
         }
+
+        /// <summary>
+        /// Helper method to get county ID from name
+        /// </summary>
+        private string GetCountyIdFromName(string countyName)
+        {
+            // Reverse mapping of common county names to IDs
+            return countyName switch
+            {
+                "Prahova" => "ROPH",
+                "Gorj" => "ROGJ",
+                "Bacău" => "ROBC",
+                "București" => "ROB",
+                "Alba" => "ROAB",
+                "Arad" => "ROAR",
+                "Argeș" => "ROAG",
+                "Bihor" => "ROBH",
+                "Bistrița-Năsăud" => "ROBN",
+                "Botoșani" => "ROBT",
+                "Brăila" => "ROBR",
+                "Brașov" => "ROBV",
+                "Buzău" => "ROBZ",
+                "Călărași" => "ROCL",
+                "Caraș-Severin" => "ROCS",
+                "Cluj" => "ROCJ",
+                "Constanța" => "ROCT",
+                "Covasna" => "ROCV",
+                "Dâmbovița" => "RODB",
+                "Dolj" => "RODJ",
+                "Galați" => "ROGL",
+                "Giurgiu" => "ROGR",
+                "Harghita" => "ROHR",
+                "Hunedoara" => "ROHD",
+                "Ialomița" => "ROIL",
+                "Iași" => "ROIS",
+                "Ilfov" => "ROIF",
+                "Maramureș" => "ROMM",
+                "Mehedinți" => "ROMH",
+                "Mureș" => "ROMS",
+                "Neamț" => "RONT",
+                "Olt" => "ROOT",
+                "Satu Mare" => "ROSM",
+                "Sălaj" => "ROSJ",
+                "Sibiu" => "ROSB",
+                "Suceava" => "ROSV",
+                "Teleorman" => "ROTR",
+                "Timiș" => "ROTM",
+                "Tulcea" => "ROTL",
+                "Vâlcea" => "ROVL",
+                "Vaslui" => "ROVS",
+                "Vrancea" => "ROVN",
+                _ => ""
+            };
+        }
+        #endregion
+
+        #region Auto-Refresh
+        /// <summary>
+        /// Setup auto-refresh timer
+        /// </summary>
+        private void SetupAutoRefresh()
+        {
+            _refreshTimer = new System.Windows.Threading.DispatcherTimer();
+            _refreshTimer.Interval = TimeSpan.FromSeconds(5);
+            _refreshTimer.Tick += RefreshTimer_Tick;
+            _refreshTimer.Start();
+
+            UpdateDebugText("⏱️ Auto-refresh enabled (5 seconds)");
+        }
+
+        /// <summary>
+        /// Stop auto-refresh timer
+        /// </summary>
+        private void StopAutoRefresh()
+        {
+            _refreshTimer?.Stop();
+            _refreshTimer = null;
+            UpdateDebugText("⏹️ Auto-refresh stopped");
+        }
+
+        /// <summary>
+        /// Timer tick event - refresh the map data
+        /// </summary>
+        private void RefreshTimer_Tick(object? sender, EventArgs e)
+        {
+            try
+            {
+                // Only refresh if we have site data
+                if (_lastSiteData != null && _lastSiteData.Any())
+                {
+                    // Update each county based on sites in that county
+                    foreach (var county in _counties)
+                    {
+                        county.UpdateFromSites(_lastSiteData);
+                        UpdateCountyAppearance(county);
+                    }
+
+                    UpdateOverviewStatistics();
+
+                    // Update last refresh time
+                    if (LastRefreshText != null)
+                    {
+                        LastRefreshText.Text = DateTime.Now.ToString("HH:mm:ss");
+                    }
+
+                    UpdateDebugText($"🔄 Auto-refresh completed at {DateTime.Now:HH:mm:ss}");
+                }
+            }
+            catch (Exception ex)
+            {
+                UpdateDebugText($"❌ Error during auto-refresh: {ex.Message}");
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -321,12 +721,12 @@ namespace GasFireMonitoringClient.Views.Controls
             {
                 UpdateDebugText($"Updating status for {sites?.Count ?? 0} sites");
 
+                // Store the site data for auto-refresh
+                _lastSiteData = sites;
+
                 if (sites == null || !sites.Any())
                 {
-                    // Set test data for development
-                    SetCountyStatus("Prahova", "normal", 8, 0);
-                    SetCountyStatus("Gorj", "alarm", 2, 1);
-                    UpdateOverviewStatistics();
+                    UpdateDebugText("No sites to display");
                     return;
                 }
 
@@ -344,45 +744,6 @@ namespace GasFireMonitoringClient.Views.Controls
                 UpdateDebugText($"❌ Error updating county status: {ex.Message}");
             }
         }
-
-        /// <summary>
-        /// Set county status manually (for testing)
-        /// </summary>
-        public void SetCountyStatus(string countyName, string status, int totalSites = 0, int alarmSites = 0)
-        {
-            try
-            {
-                var county = _counties.FirstOrDefault(c => c.Name == countyName);
-                if (county != null)
-                {
-                    county.Status = status;
-                    county.TotalSites = totalSites;
-                    county.AlarmSites = alarmSites;
-                    county.NormalSites = totalSites - alarmSites;
-
-                    UpdateCountyAppearance(county);
-                    UpdateDebugText($"✅ Set {countyName}: {status} ({totalSites} sites)");
-                }
-            }
-            catch (Exception ex)
-            {
-                UpdateDebugText($"❌ Error setting county status: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Test method to verify the map is working
-        /// </summary>
-        public void TestMapFunctionality()
-        {
-            UpdateDebugText("🧪 Testing map functionality...");
-
-            // Set test data for counties where you have sites
-            SetCountyStatus("Prahova", "normal", 8, 0);
-            SetCountyStatus("Gorj", "alarm", 2, 1);
-
-            UpdateDebugText("✅ Test data applied");
-        }
         #endregion
 
         #region Private Methods
@@ -396,182 +757,14 @@ namespace GasFireMonitoringClient.Views.Controls
         {
             try
             {
-                if (_countyPaths.TryGetValue(county.Name, out var path))
-                {
-                    path.Fill = county.FillBrush;
-                    path.Stroke = county.StrokeBrush;
-                    path.StrokeThickness = county.StrokeThickness;
-                    path.ToolTip = county.ToolTipText;
-
-                    // Update original brush for hover effects
-                    _originalBrushes[county.Name] = county.FillBrush;
-                }
+                // Don't update the path fill color - keep it as default light green
+                // Only update the statistics display
+                UpdateCountyStatsDisplay(county);
             }
             catch (Exception ex)
             {
                 UpdateDebugText($"❌ Error updating county appearance: {ex.Message}");
             }
-        }
-
-        private void UpdateOverviewStatistics()
-        {
-            try
-            {
-                var totalCounties = _countyPaths.Count;
-                var activeCounties = _counties.Count(c => c.Status != "offline");
-                var totalSites = _counties.Sum(c => c.TotalSites);
-                var totalAlarms = _counties.Sum(c => c.AlarmSites);
-
-                TotalCountiesText.Text = $"Counties: {totalCounties}";
-                ActiveCountiesText.Text = $"Active: {activeCounties}";
-                TotalSitesOverviewText.Text = $"Sites: {totalSites}";
-                ActiveAlarmsOverviewText.Text = $"Alarms: {totalAlarms}";
-
-                ActiveAlarmsOverviewText.Foreground = totalAlarms > 0 ? Brushes.Red : Brushes.Green;
-            }
-            catch (Exception ex)
-            {
-                UpdateDebugText($"❌ Error updating statistics: {ex.Message}");
-            }
-        }
-
-        private void UpdateDebugText(string message)
-        {
-            System.Diagnostics.Debug.WriteLine($"RomaniaMap: {message}");
-        }
-
-        /// <summary>
-        /// Apply zoom transformation to the map
-        /// </summary>
-        private void ApplyZoom()
-        {
-            MapViewbox.LayoutTransform = new ScaleTransform(_currentZoom, _currentZoom);
-            UpdateDebugText($"🔍 Zoom level: {_currentZoom:F1}x");
-        }
-        #endregion
-
-        #region Event Handlers
-        private void County_Click(object sender, MouseButtonEventArgs e)
-        {
-            try
-            {
-                if (sender is FrameworkElement element && element.Tag is string countyName)
-                {
-                    UpdateDebugText($"🎯 County clicked: {countyName}");
-                    CountyClicked?.Invoke(this, countyName);
-                }
-            }
-            catch (Exception ex)
-            {
-                UpdateDebugText($"❌ Error handling county click: {ex.Message}");
-            }
-        }
-
-        private void County_MouseEnter(object sender, MouseEventArgs e)
-        {
-            try
-            {
-                if (sender is WpfPath path && path.Tag is string countyName)
-                {
-                    // Make county brighter on hover
-                    if (_originalBrushes.TryGetValue(countyName, out var originalBrush) &&
-                        originalBrush is SolidColorBrush brush)
-                    {
-                        var color = brush.Color;
-                        var brighterColor = Color.FromArgb(
-                            color.A,
-                            (byte)Math.Min(255, color.R + 40),
-                            (byte)Math.Min(255, color.G + 40),
-                            (byte)Math.Min(255, color.B + 40)
-                        );
-                        path.Fill = new SolidColorBrush(brighterColor);
-                    }
-
-                    path.StrokeThickness += 1;
-                }
-            }
-            catch (Exception ex)
-            {
-                UpdateDebugText($"❌ Error handling mouse enter: {ex.Message}");
-            }
-        }
-
-        private void County_MouseLeave(object sender, MouseEventArgs e)
-        {
-            try
-            {
-                if (sender is WpfPath path && path.Tag is string countyName)
-                {
-                    // Restore original appearance
-                    if (_originalBrushes.TryGetValue(countyName, out var originalBrush))
-                    {
-                        path.Fill = originalBrush;
-                    }
-                    path.StrokeThickness -= 1;
-                }
-            }
-            catch (Exception ex)
-            {
-                UpdateDebugText($"❌ Error handling mouse leave: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Handle mouse wheel events for zooming to cursor position
-        /// </summary>
-        private void MapScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            try
-            {
-                e.Handled = true;
-
-                // Get mouse position relative to the map container
-                var mousePos = e.GetPosition(MapViewbox);
-
-                // Calculate new zoom level
-                var oldZoom = _currentZoom;
-                if (e.Delta > 0)
-                {
-                    _currentZoom = Math.Min(MAX_ZOOM, _currentZoom * ZOOM_FACTOR);
-                }
-                else
-                {
-                    _currentZoom = Math.Max(MIN_ZOOM, _currentZoom / ZOOM_FACTOR);
-                }
-
-                // Apply zoom transformation with focus point
-                var group = new TransformGroup();
-
-                // First, translate to center the zoom point
-                group.Children.Add(new TranslateTransform(-mousePos.X, -mousePos.Y));
-
-                // Then scale
-                group.Children.Add(new ScaleTransform(_currentZoom, _currentZoom));
-
-                // Finally, translate back
-                group.Children.Add(new TranslateTransform(mousePos.X, mousePos.Y));
-
-                MapViewbox.RenderTransform = group;
-
-                UpdateDebugText($"🔍 Zoom level: {_currentZoom:F1}x at ({mousePos.X:F0}, {mousePos.Y:F0})");
-            }
-            catch (Exception ex)
-            {
-                UpdateDebugText($"❌ Error handling mouse wheel: {ex.Message}");
-            }
-        }
-
-        private void ResetZoom_Click(object sender, RoutedEventArgs e)
-        {
-            _currentZoom = 1.0;
-
-            // Clear any existing transforms and set to identity
-            MapViewbox.RenderTransform = Transform.Identity;
-
-            // Force a layout update to ensure the reset takes effect immediately
-            MapViewbox.UpdateLayout();
-
-            UpdateDebugText("🏠 Reset to original view");
         }
         #endregion
     }

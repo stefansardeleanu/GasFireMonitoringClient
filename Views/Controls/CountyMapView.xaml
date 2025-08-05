@@ -38,7 +38,7 @@
                         <!-- County Map Canvas -->
                         <Canvas x:Name="CountyMapCanvas" 
                                Width="800" 
-                               Height="600"
+                               Height="1000"
                                Background="Transparent">
                             <!-- County shape and site markers will be added here programmatically -->
                         </Canvas>

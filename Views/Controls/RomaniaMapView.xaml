@@ -1,56 +1,54 @@
-﻿<!--
-Romania Map View using SVG Resource
-This loads the actual romania_map.svg file and makes it interactive
--->
-
+﻿<!-- File: Views/Controls/RomaniaMapView.xaml -->
 <UserControl x:Class="GasFireMonitoringClient.Views.Controls.RomaniaMapView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="700" d:DesignWidth="1000">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Map Container -->
-        <Border Grid.Row="1" BorderBrush="DarkGray" BorderThickness="2" Background="White">
+        <!-- Header -->
+        <Border Grid.Row="0" Background="DarkBlue" Padding="10">
+            <TextBlock Text="Romania Counties Overview" 
+                      FontSize="20" 
+                      FontWeight="Bold" 
+                      Foreground="White"
+                      HorizontalAlignment="Center"/>
+        </Border>
+
+        <!-- Main Content -->
+        <Border Grid.Row="1" 
+                BorderBrush="Gray" 
+                BorderThickness="2" 
+                Background="White"
+                Margin="5">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="120"/>
+                    <ColumnDefinition Width="140"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- SVG Map Viewer -->
-                <ScrollViewer x:Name="MapScrollViewer" 
-                             Grid.Column="0"
-                             HorizontalScrollBarVisibility="Auto"
+                <!-- Map Display -->
+                <ScrollViewer Grid.Column="0"
+                             x:Name="MapScrollViewer"
+                             HorizontalScrollBarVisibility="Auto" 
                              VerticalScrollBarVisibility="Auto"
-                             Background="LightCyan"
-                             HorizontalAlignment="Stretch"
-                             VerticalAlignment="Stretch"
+                             Background="AliceBlue"
                              PreviewMouseWheel="MapScrollViewer_PreviewMouseWheel">
-
-                    <!-- Container for the SVG content -->
                     <Viewbox x:Name="MapViewbox" 
-                             Stretch="Uniform" 
-                             HorizontalAlignment="Center"
-                             VerticalAlignment="Center">
-
-                        <!-- This will contain the loaded SVG -->
-                        <Canvas x:Name="SvgContainer" 
-                                Width="1000" 
-                                Height="704"
-                                Background="Transparent">
-
-                            <!-- Loading indicator -->
-                            <TextBlock x:Name="LoadingText" 
-                                      Canvas.Left="400" 
-                                      Canvas.Top="300"
-                                      Text="Loading Romania map..." 
-                                      FontSize="16" 
-                                      Foreground="Gray"
-                                      HorizontalAlignment="Center"/>
+                            Stretch="Uniform"
+                            StretchDirection="Both">
+                        <Canvas x:Name="MapCanvas" 
+                               Width="1000" 
+                               Height="700"
+                               Background="Transparent">
+                            <!-- SVG paths will be added here programmatically -->
                         </Canvas>
                     </Viewbox>
                 </ScrollViewer>
@@ -58,7 +56,7 @@ This loads the actual romania_map.svg file and makes it interactive
                 <!-- Slim Control Panel -->
                 <Border Grid.Column="1" 
                         Background="LightGray" 
-                        Width="120" 
+                        Width="140" 
                         Padding="5">
                     <StackPanel>
 
@@ -72,42 +70,83 @@ This loads the actual romania_map.svg file and makes it interactive
 
                         <Separator Margin="0,5"/>
 
-                        <!-- Status Summary -->
-                        <TextBlock Text="Overview" FontWeight="Bold" FontSize="11" Margin="0,0,0,3"/>
+                        <!-- Auto-refresh indicator -->
+                        <StackPanel Orientation="Horizontal" Margin="0,2">
+                            <TextBlock Text="Auto-refresh: " FontSize="9"/>
+                            <TextBlock x:Name="AutoRefreshStatus" Text="ON" FontSize="9" FontWeight="Bold" Foreground="Green"/>
+                        </StackPanel>
+                        <TextBlock x:Name="LastRefreshText" Text="Never" FontSize="8" Foreground="Gray" Margin="0,0,0,5"/>
 
-                        <TextBlock x:Name="TotalCountiesText" Text="Counties: 42" FontSize="9" Margin="0,1"/>
-                        <TextBlock x:Name="ActiveCountiesText" Text="Active: 2" FontSize="9" Margin="0,1"/>
-                        <TextBlock x:Name="TotalSitesOverviewText" Text="Sites: 10" FontSize="9" Margin="0,1"/>
-                        <TextBlock x:Name="ActiveAlarmsOverviewText" Text="Alarms: 0" FontSize="9" Margin="0,1" Foreground="Red"/>
+                        <Separator Margin="0,5"/>
+
+                        <!-- County Statistics -->
+                        <TextBlock Text="Overview Stats" FontWeight="Bold" FontSize="11" Margin="0,0,0,3"/>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,1">
+                            <TextBlock Text="Counties: " FontSize="9" FontWeight="Bold"/>
+                            <TextBlock x:Name="TotalCountiesText" Text="0" FontSize="9" FontWeight="Bold" Foreground="DarkBlue"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,1">
+                            <TextBlock Text="Normal: " FontSize="9" FontWeight="Bold"/>
+                            <TextBlock x:Name="NormalCountiesText" Text="0" FontSize="9" FontWeight="Bold" Foreground="Green"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,1">
+                            <TextBlock Text="Alarms: " FontSize="9" FontWeight="Bold"/>
+                            <TextBlock x:Name="AlarmCountiesText" Text="0" FontSize="9" FontWeight="Bold" Foreground="Orange"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,1">
+                            <TextBlock Text="Errors: " FontSize="9" FontWeight="Bold"/>
+                            <TextBlock x:Name="ErrorCountiesText" Text="0" FontSize="9" FontWeight="Bold" Foreground="Red"/>
+                        </StackPanel>
+
+                        <Separator Margin="0,5"/>
+
+                        <TextBlock Text="Total Sites: " FontSize="9" FontWeight="Bold"/>
+                        <TextBlock x:Name="TotalSitesText" Text="0" FontSize="10" FontWeight="Bold" Foreground="DarkBlue" HorizontalAlignment="Center"/>
 
                         <Separator Margin="0,5"/>
 
                         <!-- Legend -->
-                        <TextBlock Text="Legend" FontWeight="Bold" FontSize="11" Margin="0,0,0,3"/>
+                        <TextBlock Text="County Legend" FontWeight="Bold" FontSize="11" Margin="0,0,0,3"/>
 
                         <StackPanel Orientation="Horizontal" Margin="0,1">
-                            <Ellipse Width="8" Height="8" Fill="Green" Margin="0,0,3,0"/>
-                            <TextBlock Text="Normal" VerticalAlignment="Center" FontSize="8"/>
+                            <Rectangle Width="8" Height="8" Fill="Green" Margin="0,0,3,0"/>
+                            <TextBlock Text="All Normal" VerticalAlignment="Center" FontSize="8"/>
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal" Margin="0,1">
-                            <Ellipse Width="8" Height="8" Fill="Orange" Margin="0,0,3,0"/>
-                            <TextBlock Text="Alarm" VerticalAlignment="Center" FontSize="8"/>
+                            <Rectangle Width="8" Height="8" Fill="Orange" Margin="0,0,3,0"/>
+                            <TextBlock Text="Has Alarms" VerticalAlignment="Center" FontSize="8"/>
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal" Margin="0,1">
-                            <Ellipse Width="8" Height="8" Fill="Red" Margin="0,0,3,0"/>
-                            <TextBlock Text="Error" VerticalAlignment="Center" FontSize="8"/>
+                            <Rectangle Width="8" Height="8" Fill="Red" Margin="0,0,3,0"/>
+                            <TextBlock Text="Has Errors" VerticalAlignment="Center" FontSize="8"/>
                         </StackPanel>
 
-                        <StackPanel Orientation="Horizontal" Margin="0,1">
-                            <Ellipse Width="8" Height="8" Fill="Gray" Margin="0,0,3,0"/>
-                            <TextBlock Text="Offline" VerticalAlignment="Center" FontSize="8"/>
-                        </StackPanel>
+                        <Separator Margin="0,5"/>
+
+                        <!-- Controls Info -->
+                        <TextBlock Text="Controls" FontWeight="Bold" FontSize="11" Margin="0,0,0,3"/>
+
+                        <TextBlock Text="🖱️ Wheel: Zoom" FontSize="8" Margin="0,1"/>
+                        <TextBlock Text="🖱️ Drag: Pan" FontSize="8" Margin="0,1"/>
+                        <TextBlock Text="🖱️ Click: County" FontSize="8" Margin="0,1"/>
 
                     </StackPanel>
                 </Border>
             </Grid>
+        </Border>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="LightGray" Padding="5">
+            <TextBlock x:Name="DebugText" 
+                      Text="Ready" 
+                      FontFamily="Consolas" 
+                      FontSize="10"/>
         </Border>
     </Grid>
 </UserControl>

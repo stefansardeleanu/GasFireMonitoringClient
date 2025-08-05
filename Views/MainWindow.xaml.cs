@@ -82,9 +82,35 @@ namespace GasFireMonitoringClient.Views
         {
             _autoRefreshTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromSeconds(App.Settings.DataRefreshInterval)
+                // Set to 5 seconds interval (or use the setting if available)
+                Interval = TimeSpan.FromSeconds(5) // Changed to 5 seconds to match Romania map
             };
             _autoRefreshTimer.Tick += AutoRefreshTimer_Tick;
+
+            // Log the timer setup
+            LogMessage($"⏱️ Auto-refresh timer configured with {_autoRefreshTimer.Interval.TotalSeconds} seconds interval");
+        }
+
+        private void AutoRefreshTimer_Tick(object? sender, EventArgs e)
+        {
+            _ = Task.Run(async () =>
+            {
+                // Refresh sites data
+                await RefreshSitesData();
+
+                // Refresh sensors for selected site if any
+                if (_selectedSiteId > 0)
+                {
+                    await RefreshSensorsData(_selectedSiteId);
+                }
+
+                // Update the Romania map with refreshed data
+                Dispatcher.Invoke(() =>
+                {
+                    UpdateMainRomaniaMapData();
+                    LogMessage($"🔄 Auto-refresh completed at {DateTime.Now:HH:mm:ss}");
+                });
+            });
         }
         #endregion
 
@@ -225,7 +251,7 @@ namespace GasFireMonitoringClient.Views
                 // Update dashboard summary
                 UpdateDashboardSummary();
 
-                // Update map views - MODIFIED to include Romania map
+                // Update map views - INCLUDING ROMANIA MAP
                 UpdateMapViews();
 
                 SitesLastUpdateText.Text = DateTime.Now.ToString("HH:mm:ss");
@@ -314,17 +340,8 @@ namespace GasFireMonitoringClient.Views
             NewAlarmCountText.Text = _alarmsCollection.Count(a => a.IsNew).ToString();
         }
 
-        private void AutoRefreshTimer_Tick(object? sender, EventArgs e)
-        {
-            _ = Task.Run(async () =>
-            {
-                await RefreshSitesData();
-                if (_selectedSiteId > 0)
-                {
-                    await RefreshSensorsData(_selectedSiteId);
-                }
-            });
-        }
+
+  
         #endregion
 
         #region UI Event Handlers
@@ -360,7 +377,10 @@ namespace GasFireMonitoringClient.Views
             {
                 _autoRefreshTimer?.Start();
                 AutoRefreshButton.Content = "⏱️ Auto Refresh: ON";
-                LogMessage("✅ Auto-refresh enabled");
+                LogMessage("✅ Auto-refresh enabled (5 seconds interval)");
+
+                // Do an immediate refresh
+                _ = Task.Run(async () => await RefreshSitesData());
             }
             else
             {
@@ -1029,13 +1049,7 @@ private void ShowCountyDetail(string countyName)
                     LogMessage($"🎯 County clicked: {countyName}");
                 };
 
-                testWindow.Content = romaniaMap;
-
-                // Test the map functionality
-                romaniaMap.TestMapFunctionality();
-
-                testWindow.Show();
-                LogMessage("✅ Romania map test window opened");
+                
             }
             catch (Exception ex)
             {
@@ -1045,13 +1059,7 @@ private void ShowCountyDetail(string countyName)
             }
         }
 
-        /// <summary>
-        /// Test Romania map button click handler
-        /// </summary>
-        private void TestRomaniaMap_Click(object sender, RoutedEventArgs e)
-        {
-            TestRomaniaMap();
-        }
+        
 
         #endregion
 
