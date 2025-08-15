@@ -148,7 +148,7 @@ namespace GasFireMonitoringClient.Views.Controls {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/GasFireMonitoringClient;V1.0.0.0;component/views/controls/romaniamapview.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/GasFireMonitoringClient;component/views/controls/romaniamapview.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\..\Views\Controls\RomaniaMapView.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
